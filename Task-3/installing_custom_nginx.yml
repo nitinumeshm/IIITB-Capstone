@@ -1,0 +1,43 @@
+---
+- name: installing and configuring Nginx on app-machines of AWS and Azure
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: installing Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: starting and enabling Nginx service
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: copying index-aws.html in aws-app-machine
+      copy:
+        src: index-aws.html
+        dest: /var/www/html/index.nginx-debian.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      when: "'aws-app-machine' in inventory_hostname"
+
+    - name: copying index-azure.html in azure-app-machine
+      copy:
+        src: index-azure.html
+        dest: /var/www/html/index.nginx-debian.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      when: "'azure-app-machine' in inventory_hostname"
+
+    - name: verifying Nginx is running
+      command: systemctl is-active nginx
+      register: nginx_status
+      changed_when: false
+
+    - name: displaying Nginx status
+      debug:
+        msg: "Nginx is {{ nginx_status.stdout}}"
