@@ -1,0 +1,25 @@
+---
+- name: installing and configuring Nginx on app-machines of AWS and Azure
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: installing Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: starting and enabling Nginx service
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: verifying if Nginx is running
+      command: systemctl is-active nginx
+      register: nginx_status
+      changed_when: false
+
+    - name: displaying Nginx status
+      debug:
+        msg: "Nginx is {{ nginx_status.stdout}}"
